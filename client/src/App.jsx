@@ -1,167 +1,232 @@
-import React, { useState, useCallback } from 'react';
-// Replaced FontAwesome imports with a function to return inline SVG icons
-// to ensure compilation stability in this isolated environment.
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
-// --- CONFIGURATION ---
-// IMPORTANT: This must match the URL and port of your running Node.js server.
+// --- Configuration and Placeholders (for self-contained file) ---
 const API_ENDPOINT = 'http://localhost:3001/api/generate-content';
-const MODEL_NAME = 'Gemini 2.5 Flash';
 
-// Helper function to render a common UI icon (Wand/Magic Stick)
-const WandIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 21l15-15L15 6 6 15l6 6z" />
-    <path d="M10 2l2 2" />
-    <path d="M4 11l2 2" />
-    <path d="M19 4l-2 2" />
-    <path d="M22 10l-2 2" />
-  </svg>
-);
+// Placeholder URLs for images (as external imports are not allowed in a single file)
+const LOGO_TEXT_URL = "https://placehold.co/200x50/17141f/e0e0e0?text=GameSense+AI";
+const DEFAULT_PFP_URL = "https://placehold.co/40x40/553c9a/ffffff?text=U";
+const VALORANT_LOGO_URL = "https://placehold.co/24x24/FF4655/ffffff?text=V";
+const R6_LOGO_URL = "https://placehold.co/24x24/007bff/ffffff?text=R6";
+const CS2_LOGO_URL = "https://placehold.co/24x24/f7b32d/ffffff?text=CS2";
+const MODEL_NAME = "Gemini 2.5 Flash"; // Used for error context
 
-// Helper function for the Send Button (Paper Plane)
-const SendIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 2L11 13" />
-    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-  </svg>
-);
+// --- Helper Components ---
 
-// Helper function for the Loading Spinner
-const SpinnerIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
+// 1. Chat Bubble Component
+const ChatBubble = ({ role, content }) => {
+    const isAssistant = role === "assistant";
+    const isPlaceholder = content === "...";
 
-
-/**
- * Main application component for the AI assistant interface.
- * Uses Tailwind CSS for styling and communicates with a secure backend proxy.
- */
-function App() {
-  const [prompt, setPrompt] = useState('');
-  const [response, setResponse] = useState(
-    'Welcome! Ask the Gemini AI assistant a question by typing in the box below.'
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Function to handle the API call to the backend proxy
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    if (!prompt.trim() || isLoading) return;
-
-    setIsLoading(true);
-    setError(null);
-    setResponse('...thinking...');
-
-    try {
-      // 1. Fetch Request to the Secure Backend Proxy
-      const res = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Send the user's prompt to the backend
-        body: JSON.stringify({ prompt }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        // Handle server-side errors (e.g., API key missing, prompt missing)
-        throw new Error(data.error || `HTTP error! Status: ${res.status}`);
-      }
-
-      // 2. Success: Update the response state
-      setResponse(data.text || 'No content received from AI.');
-      setPrompt(''); // Clear the input field
-
-    } catch (err) {
-      // 3. Handle network or client-side errors
-      console.error('API Interaction Error:', err.message);
-      setError('Connection or API error: Could not reach the server or process the request.');
-      setResponse('An error occurred. Please check your console and ensure the backend server is running.');
-    } finally {
-      // 4. Reset loading state
-      setIsLoading(false);
-    }
-  }, [prompt, isLoading]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-xl p-6 md:p-10 border border-gray-100">
+    const styles = {
+        bubble: `max-w-xl p-4 rounded-xl shadow-md transition-colors duration-300 
+            ${isAssistant 
+                ? 'bg-[#1B1724] text-gray-200 ml-auto rounded-tr-none' 
+                : 'bg-gray-700 text-white mr-auto rounded-tl-none'}
+            ${isPlaceholder ? 'animate-pulse opacity-70' : ''}`,
         
-        {/* Header */}
-        <div className="flex items-center space-x-3 mb-8 border-b pb-4">
-          <WandIcon 
-            className="w-8 h-8 text-indigo-600"
-          />
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-            AI Assistant Chat
-          </h1>
-          <span className="text-sm font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full ml-auto">
-            Powered by {MODEL_NAME}
-          </span>
-        </div>
+        user_pfp: "w-8 h-8 rounded-full",
+        assistant_pfp: "w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white shadow-lg",
+        
+        wrapper: `flex items-start gap-3 ${isAssistant ? 'justify-end' : 'justify-start'}`
+    };
 
-        {/* AI Response Area */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-8 h-80 overflow-y-auto border border-gray-200">
-          <p className="whitespace-pre-wrap text-gray-700 leading-relaxed font-sans">
-            {response}
-          </p>
-          
-          {/* Error Message Display */}
-          {error && (
-            <div className="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
-              <p className="font-semibold">Error:</p>
-              <p className="text-sm">{error}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} className="flex space-x-3">
-          <div className="relative flex-grow">
-            <textarea
-              className="w-full p-4 pr-12 text-gray-800 border-2 border-indigo-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 resize-none shadow-md disabled:bg-gray-100"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask a question about coding, history, or anything else..."
-              rows="3"
-              disabled={isLoading}
-            />
-            {/* Input Character Count (Optional) */}
-            <span className="absolute bottom-2 right-2 text-xs text-gray-400">
-                {prompt.length}/2000
-            </span>
-          </div>
-
-          <button
-            type="submit"
-            className={`
-              w-16 h-16 flex items-center justify-center rounded-full text-white transition duration-200 ease-in-out shadow-lg
-              ${isLoading 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transform hover:scale-105'}
-            `}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <SpinnerIcon className="w-6 h-6 animate-spin" />
-            ) : (
-              <SendIcon className="w-6 h-6" />
+    return (
+        <div className={styles.wrapper}>
+            {!isAssistant && (
+                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.user_pfp} />
             )}
-          </button>
-        </form>
+            <div className={styles.bubble}>
+                <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+            {isAssistant && (
+                <div className={styles.assistant_pfp}>AI</div>
+            )}
+        </div>
+    );
+};
 
-        {/* Footer Note */}
-        <p className="mt-4 text-xs text-center text-gray-400">
-          Note: This frontend communicates with your secure backend proxy on `http://localhost:3001`.
-        </p>
-      </div>
-    </div>
-  );
+
+// 2. Game Selection Button Component
+const GameSelect = ({name, logo}) => {
+    const styles = {
+        container : "bg-[#251F33] hover:bg-[#1B1724] my-4 w-full rounded-xl flex flex-row items-center transition-colors p-3 focus:outline-none focus:ring-2 focus:ring-[#00FF00]",
+        logo: "w-6 h-6 mx-2 rounded-lg",
+        name: "w-full text-center text-sm font-bold text-gray-200",
+    }
+    return (
+        <button className={styles.container}>
+            <img src={logo} alt={`${name} Logo`} className={styles.logo} />
+            <h1 className={styles.name}>{name}</h1>
+        </button>
+    )
+}
+
+
+// --- Main App Component (Formerly Home) ---
+function App() {
+    const [messages, setMessages] = useState([
+        { role: "assistant", content: "Welcome to GameSense! Select a game chat on the left to get started, or ask a general question about gaming strategy." }
+    ]);
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Ref for auto-scrolling
+    const chatWindowRef = useRef(null);
+
+    // Auto-scroll to bottom whenever messages update
+    useEffect(() => {
+        if (chatWindowRef.current) {
+            chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const sendMessage = useCallback(async () => {
+        const trimmedInput = input.trim();
+        if (!trimmedInput || isLoading) return;
+
+        const userMessage = { role: "user", content: trimmedInput };
+        
+        // 1. Display user message immediately
+        setMessages(m => [...m, userMessage]); 
+        setInput(""); // Clear input
+        setIsLoading(true);
+
+        // 2. Add temporary placeholder message for loading
+        setMessages(m => [...m, { role: "assistant", content: "..." }]);
+
+        try {
+            // 3. API Call to Node.js Backend Proxy
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: trimmedInput })
+            });
+
+            const data = await response.json();
+
+            // 4. Remove placeholder message
+            setMessages(m => m.slice(0, m.length - 1));
+
+            if (!response.ok || data.error) {
+                const errorMessage = data.error || `Failed to fetch response from ${MODEL_NAME} via backend.`;
+                setMessages(m => [...m, { role: "assistant", content: `API Error: ${errorMessage}` }]);
+                console.error("Backend Error:", errorMessage);
+                return;
+            }
+
+            // 5. Display AI response
+            const aiMessage = { role: "assistant", content: data.text || "No content received from AI." };
+            setMessages(m => [...m, aiMessage]);
+
+        } catch (error) {
+            // Remove placeholder message on network failure
+            setMessages(m => m.slice(0, m.length - 1)); 
+            
+            const networkError = `Network Error: Please ensure your Node.js server is running on ${API_ENDPOINT} and your internet connection is active.`;
+            setMessages(m => [...m, { role: "assistant", content: networkError }]);
+            console.error("Network or Fetch Error:", error);
+
+        } finally {
+            setIsLoading(false);
+        }
+    }, [input, isLoading]);
+
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Prevents newline in input box
+            sendMessage();
+        }
+    };
+
+
+    const styles = {
+        container: "flex min-h-screen text-white font-sans",
+        sidebar: "flex flex-col w-64 min-w-64 bg-[#17141f] border-r border-[#00FF00]/20",
+        chat_section: "flex-1 flex flex-col",
+
+        navbar: "flex flex-row items-center justify-center w-full h-16 bg-[#1B1724] shadow-lg shadow-black/30 px-6 text-xl font-bold text-[#00FF00]",
+        chat_window: "flex-1 overflow-y-auto p-6 space-y-6 bg-[#251F33]",
+        chats: "w-[90%] mx-auto md:w-[70%]",
+        game_chats: "px-5 flex-1 overflow-y-auto",
+        input_chat: "p-4 bg-[#1B1724] border-t-2 border-[#00FF00] flex items-center gap-3 shadow-t-xl",
+        text_input: "flex-1 bg-[#17141f] px-4 py-3 rounded-2xl outline-none shadow-inner shadow-black/50 text-base resize-none placeholder-gray-500",
+        send_btn: `px-6 py-3 text-white rounded-xl transition duration-200 shadow-md font-semibold focus:outline-none focus:ring-4 focus:ring-[#00FF00]/50 
+            ${isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#00BB00] hover:bg-[#007700] active:bg-[#005500]'}`,
+
+        user_acc_btn: "flex flex-row px-5 py-4 mt-auto w-full items-center hover:bg-[#251F33] transition-colors border-t border-[#00FF00]/10",
+        acc_pfp: "w-10 h-10 rounded-full object-cover shadow-lg border-2 border-[#00FF00]/50",
+        acc_name: "text-lg ml-5 font-medium"
+    }
+
+    return (
+        <div className={styles.container}>
+
+            {/* SIDEBAR */}
+            <div className={styles.sidebar}>
+                <img src={LOGO_TEXT_URL} alt="GameSense Logo" className="px-7 py-5 opacity-80"/>
+                <div className={styles.game_chats}>
+                    <h1 className="text-[#00FF00] text-center pb-3 mb-2 border-b border-[#00FF00]/30 font-semibold opacity-80">Game Chats</h1>
+                    <GameSelect logo={VALORANT_LOGO_URL} name="VALORANT" />
+                    <GameSelect logo={R6_LOGO_URL} name="Rainbow Six Siege" />
+                    <GameSelect logo={CS2_LOGO_URL} name="Counter Strike 2" />
+                </div>
+                <button className={styles.user_acc_btn}>
+                    <img className={styles.acc_pfp} src={DEFAULT_PFP_URL} alt="User Profile" />
+                    <h1 className={styles.acc_name}>PlayerOne</h1>
+                </button>
+            </div>
+
+            {/* CHAT SECTION */}
+            <div className={styles.chat_section}>
+
+                {/* NAVBAR */}
+                <nav className={styles.navbar}>VALORANT Chat ({MODEL_NAME})</nav>
+
+                {/* CHAT WINDOW */}
+                <div ref={chatWindowRef} className={styles.chat_window}>
+                    <div className={styles.chats}>
+                        { messages.map((msg, index) => ( 
+                            <ChatBubble 
+                                key={index} 
+                                role={msg.role} 
+                                content={msg.content} 
+                            /> 
+                        ))}
+                    </div>
+                </div>
+
+                {/* INPUT BOX */}
+                <div className={styles.input_chat}>
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className={styles.text_input}
+                        placeholder={isLoading ? "Waiting for AI response..." : "Message GameSense..."}
+                        disabled={isLoading}
+                        rows={1}
+                        style={{minHeight: '40px', maxHeight: '150px'}} // Restrict resizing
+                    />
+                    <button 
+                        onClick={sendMessage} 
+                        className={styles.send_btn}
+                        disabled={isLoading || !input.trim()}
+                    >
+                        {isLoading ? (
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : 'Send'}
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    );
 }
 
 export default App;
