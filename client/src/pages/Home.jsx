@@ -14,7 +14,7 @@ const MODEL_NAME = "Gemini 2.5 Flash"; // Used for error context
 // --- Helper Components ---
 
 // 1. Chat Bubble Component
-const ChatBubble = ({ role, content, index, isLoading }) => {
+const ChatBubble = ({ role, content}) => {
     const isAssistant = role === "assistant";
     const isPlaceholder = content === "...";
 
