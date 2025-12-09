@@ -1,46 +1,49 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 
 // --- Configuration and Placeholders (for self-contained file) ---
 const API_ENDPOINT = 'http://localhost:3001/api/generate-content';
 
 // Placeholder URLs for images (as external imports are not allowed in a single file)
-const LOGO_TEXT_URL = "https://placehold.co/200x50/17141f/e0e0e0?text=GameSense+AI";
-const DEFAULT_PFP_URL = "https://placehold.co/40x40/553c9a/ffffff?text=U";
-const VALORANT_LOGO_URL = "https://placehold.co/24x24/FF4655/ffffff?text=V";
-const R6_LOGO_URL = "https://placehold.co/24x24/007bff/ffffff?text=R6";
-const CS2_LOGO_URL = "https://placehold.co/24x24/f7b32d/ffffff?text=CS2";
+const LOGO_TEXT_URL = "https://img.sanishtech.com/u/e243e1f1c4d41e3c708c4bb96722f8f3.png";
+const DEFAULT_PFP_URL = "https://img.sanishtech.com/u/eb150678b581005ae66f73c2ed6903d5.png";
+const AI_PFP_URL = "https://img.sanishtech.com/u/bb3cc7ed4b7edbf3d0a11b66c7822bd0.png";
+
+const VALORANT_LOGO_URL = "https://img.sanishtech.com/u/448727e2739d482b691ad54fdb5429b3.jpg";
+const R6_LOGO_URL = "https://img.sanishtech.com/u/e20815c58cfb144130cc4bf7c5baae1f.jpg";
+const CS2_LOGO_URL = "https://img.sanishtech.com/u/512134deae934b0aadb87844c26fd483.png";
+
 const MODEL_NAME = "Gemini 2.5 Flash"; // Used for error context
 
 // --- Helper Components ---
 
 // 1. Chat Bubble Component
-const ChatBubble = ({ role, content}) => {
+const ChatBubble = ({ role, content }) => {
     const isAssistant = role === "assistant";
     const isPlaceholder = content === "...";
 
     const styles = {
-        bubble: `max-w-xl p-4 rounded-xl shadow-md transition-colors duration-300 
+        bubble: `max-w-[80%] p-4 my-3 rounded-xl shadow-md transition-colors duration-300 whitespace-pre-wrap prose prose-invert
             ${isAssistant 
-                ? 'bg-[#1B1724] text-gray-200 ml-auto rounded-tr-none' 
-                : 'bg-gray-700 text-white mr-auto rounded-tl-none'}
+                ? 'bg-[#1B1724] text-gray-200 mr-auto rounded-tl-none' 
+                : 'bg-gray-700 text-white ml-auto rounded-tr-none'}
             ${isPlaceholder ? 'animate-pulse opacity-70' : ''}`,
         
-        user_pfp: "w-8 h-8 rounded-full",
-        assistant_pfp: "w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white shadow-lg",
-        
+        pfp: "w-8 h-8 rounded-full",
+
         wrapper: `flex items-start gap-3 ${isAssistant ? 'justify-end' : 'justify-start'}`
     };
 
     return (
         <div className={styles.wrapper}>
-            {!isAssistant && (
-                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.user_pfp} />
+            {isAssistant && (
+                <img src={AI_PFP_URL} alt="AI PFP" className={styles.pfp} />
             )}
             <div className={styles.bubble}>
-                <p className="whitespace-pre-wrap">{content}</p>
+                <ReactMarkdown>{content}</ReactMarkdown>
             </div>
-            {isAssistant && (
-                <div className={styles.assistant_pfp}>AI</div>
+            {!isAssistant && (
+                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.pfp} />
             )}
         </div>
     );
@@ -51,7 +54,7 @@ const ChatBubble = ({ role, content}) => {
 const GameSelect = ({name, logo}) => {
     const styles = {
         container : "bg-[#251F33] hover:bg-[#1B1724] my-4 w-full rounded-xl flex flex-row items-center transition-colors p-3 focus:outline-none focus:ring-2 focus:ring-[#00FF00]",
-        logo: "w-6 h-6 mx-2 rounded-lg",
+        logo: "w-6 h-6 mx-2 rounded-md",
         name: "w-full text-center text-sm font-bold text-gray-200",
     }
     return (
@@ -143,15 +146,17 @@ function Home() {
 
     const styles = {
         container: "flex min-h-screen text-white font-sans",
-        sidebar: "flex flex-col w-64 min-w-64 bg-[#17141f] border-r border-[#00FF00]/20",
-        chat_section: "bg-[#251F33] flex-1 flex flex-col",
+        sidebar: "flex flex-col w-64 min-w-64 bg-[#17141f]",
+        chat_section: "bg-[#251F33] flex-1 flex flex-col max-h-screen",
 
         navbar: "flex flex-row items-center justify-center w-full h-16 bg-[#1B1724] shadow-lg shadow-black/30 px-6 text-xl font-bold text-[#00FF00]",
+
         chat_window: "flex-1 overflow-y-auto p-6 space-y-6",
-        chats: "w-[90%] mx-auto md:w-[70%]",
+        chats: "w-[90%] mx-auto md:w-[70%] overflow-y-auto",
         game_chats: "px-5 flex-1 overflow-y-auto",
-        input_chat: "p-4 bg-[#1B1724] border-t-2 border-[#00FF00] flex items-center gap-3 shadow-t-xl",
-        text_input: "flex-1 bg-[#17141f] px-4 py-3 rounded-2xl outline-none shadow-inner shadow-black/50 text-base resize-none placeholder-gray-500",
+
+        input_chat: "p-4 mx-10 my-5 bg-[#1B1724] flex items-center gap-3 shadow-t-xl rounded-xl",
+        text_input: "flex-1 bg-[#17141f] px-4 py-3 rounded-lg outline-none shadow-inner shadow-black/50 text-base resize-none placeholder-gray-500",
         send_btn: `px-6 py-3 text-white rounded-xl transition duration-200 shadow-md font-semibold focus:outline-none focus:ring-4 focus:ring-[#00FF00]/50 
             ${isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#00BB00] hover:bg-[#007700] active:bg-[#005500]'}`,
 
@@ -174,7 +179,7 @@ function Home() {
                 </div>
                 <button className={styles.user_acc_btn}>
                     <img className={styles.acc_pfp} src={DEFAULT_PFP_URL} alt="User Profile" />
-                    <h1 className={styles.acc_name}>PlayerOne</h1>
+                    <h1 className={styles.acc_name}>User</h1>
                 </button>
             </div>
 
