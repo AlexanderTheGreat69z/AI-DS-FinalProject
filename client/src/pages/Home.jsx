@@ -23,16 +23,18 @@ const ChatBubble = ({ role, content }) => {
     const isPlaceholder = content === "...";
 
     const styles = {
-        bubble: `max-w-[80%] p-4 my-3 rounded-xl shadow-md transition-colors duration-300 whitespace-pre-wrap prose prose-invert
+        bubble: `max-w-[80%] p-4 my-3 rounded-xl shadow-md transition-colors duration-300 whitespace-pre-wrap
             ${isAssistant 
                 ? 'bg-[#1B1724] text-gray-200 mr-auto rounded-tl-none' 
                 : 'bg-gray-700 text-white ml-auto rounded-tr-none'}
             ${isPlaceholder ? 'animate-pulse opacity-70' : ''}`,
         
-        pfp: "w-8 h-8 rounded-full",
+        pfp: "w-10 h-10 mt-3 rounded-full",
 
         wrapper: `flex items-start gap-3 ${isAssistant ? 'justify-end' : 'justify-start'}`
     };
+
+    const cleanedText = content.replace(/^\s*[\r\n]/gm, "").replace(/\n{2,}/g, "\n\n");
 
     return (
         <div className={styles.wrapper}>
@@ -40,7 +42,16 @@ const ChatBubble = ({ role, content }) => {
                 <img src={AI_PFP_URL} alt="AI PFP" className={styles.pfp} />
             )}
             <div className={styles.bubble}>
-                <ReactMarkdown>{content}</ReactMarkdown>
+                <ReactMarkdown components={{
+                    p: (props) => <p className="leading-relaxed">{props.children}</p>,
+                    ul: (props) => <ul className="list-disc ml-4 space-y-1">{props.children}</ul>,
+                    li: (props) => <li className="leading-snug">{props.children}</li>,
+                    h3: (props) => <h3 className="font-semibold text-lg mt-2">{props.children}</h3>,
+                    code: (props) => <code className="bg-gray-800 px-1 rounded">{props.children}</code>,
+                    pre: (props) => <pre className="bg-gray-800 p-3 rounded-lg mt-2">{props.children}</pre>,
+                }}>
+                    {cleanedText}
+                </ReactMarkdown>
             </div>
             {!isAssistant && (
                 <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.pfp} />
@@ -69,7 +80,7 @@ const GameSelect = ({name, logo}) => {
 // --- Main Home Component (Updated with API Logic) ---
 function Home() {
     const [messages, setMessages] = useState([
-        { role: "assistant", content: "Welcome to GameSense! Select a game chat on the left to get started, or ask a general question about gaming strategy." }
+        { role: "assistant", content: "Welcome to **GameSense!** Select a game chat on the left to get started, or ask a general question about gaming strategy." }
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -146,10 +157,10 @@ function Home() {
 
     const styles = {
         container: "flex min-h-screen text-white font-sans",
-        sidebar: "flex flex-col w-64 min-w-64 bg-[#17141f]",
+        sidebar: "flex flex-col w-64 min-w-64 bg-[#17141f] border-r-2 border-green-500",
         chat_section: "bg-[#251F33] flex-1 flex flex-col max-h-screen",
 
-        navbar: "flex flex-row items-center justify-center w-full h-16 bg-[#1B1724] shadow-lg shadow-black/30 px-6 text-xl font-bold text-[#00FF00]",
+        navbar: "flex flex-row items-center justify-center w-full h-16 bg-[#1B1724] shadow-lg shadow-black/30 px-6 text-xl text-[#00FF00]",
 
         chat_window: "flex-1 overflow-y-auto p-6 space-y-6",
         chats: "w-[90%] mx-auto md:w-[70%] overflow-y-auto",
@@ -160,8 +171,8 @@ function Home() {
         send_btn: `px-6 py-3 text-white rounded-xl transition duration-200 shadow-md font-semibold focus:outline-none focus:ring-4 focus:ring-[#00FF00]/50 
             ${isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#00BB00] hover:bg-[#007700] active:bg-[#005500]'}`,
 
-        user_acc_btn: "flex flex-row px-5 py-4 mt-auto w-full items-center hover:bg-[#251F33] transition-colors border-t border-[#00FF00]/10",
-        acc_pfp: "w-10 h-10 rounded-full object-cover shadow-lg border-2 border-[#00FF00]/50",
+        user_acc_btn: "flex flex-row px-5 py-4 mt-auto w-full items-center bg-[#120f1a] hover:bg-[#251F33] transition-colors",
+        acc_pfp: "w-10 h-10 rounded-full object-cover shadow-lg",
         acc_name: "text-lg ml-5 font-medium"
     }
 
@@ -187,7 +198,7 @@ function Home() {
             <div className={styles.chat_section}>
 
                 {/* NAVBAR */}
-                <nav className={styles.navbar}>VALORANT Chat ({MODEL_NAME})</nav>
+                <nav className={styles.navbar}>VALORANT Chat - {MODEL_NAME}</nav>
 
                 {/* CHAT WINDOW */}
                 <div ref={chatWindowRef} className={styles.chat_window}>
