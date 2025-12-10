@@ -21,26 +21,30 @@ const ChatBubble = ({ role, content }) => {
     const styles = {
         bubble: `max-w-xl p-4 rounded-xl shadow-md transition-colors duration-300 
             ${isAssistant 
-                ? 'bg-[#1B1724] text-gray-200 ml-auto rounded-tr-none' 
-                : 'bg-gray-700 text-white mr-auto rounded-tl-none'}
+                ? 'bg-[#1B1724] text-gray-200 mr-auto rounded-tl-none' // AI Bubble (Left)
+                : 'bg-gray-700 text-white ml-auto rounded-tr-none'} // User Bubble (Right)
             ${isPlaceholder ? 'animate-pulse opacity-70' : ''}`,
         
         user_pfp: "w-8 h-8 rounded-full",
         assistant_pfp: "w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white shadow-lg",
         
-        wrapper: `flex items-start gap-3 ${isAssistant ? 'justify-end' : 'justify-start'}`
+        wrapper: `flex items-start gap-3 ${isAssistant ? 'justify-start' : 'justify-end'}` // Wrapper (AI=start, User=end)
     };
 
     return (
         <div className={styles.wrapper}>
-            {!isAssistant && (
-                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.user_pfp} />
+            {/* AI PFP is now on the left side of the bubble */}
+            {isAssistant && (
+                <div className={styles.assistant_pfp}>AI</div>
             )}
+            
             <div className={styles.bubble}>
                 <p className="whitespace-pre-wrap">{content}</p>
             </div>
-            {isAssistant && (
-                <div className={styles.assistant_pfp}>AI</div>
+            
+            {/* User PFP is now on the right side of the bubble */}
+            {!isAssistant && (
+                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.user_pfp} />
             )}
         </div>
     );
@@ -63,8 +67,8 @@ const GameSelect = ({name, logo}) => {
 }
 
 
-// --- Main App Component (Formerly Home) ---
-function App() {
+// --- Home Page Component (Contains all core functionality) ---
+function HomePage() {
     const [messages, setMessages] = useState([
         { role: "assistant", content: "Welcome to GameSense! Select a game chat on the left to get started, or ask a general question about gaming strategy." }
     ]);
@@ -227,6 +231,12 @@ function App() {
 
         </div>
     );
+}
+
+// --- Main App Component (Wrapper) ---
+// This component acts as the main entry point (App) and renders the Home page content.
+function App() {
+    return <HomePage />;
 }
 
 export default App;

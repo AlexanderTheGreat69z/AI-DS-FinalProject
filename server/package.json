@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "A secure Node.js proxy for the Gemini API.",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.mjs"
   },
   "dependencies": {
     "@google/genai": "^0.15.0",

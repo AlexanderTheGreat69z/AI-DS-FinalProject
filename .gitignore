@@ -25,3 +25,5 @@ env/
 venv/
 .env/
 .venv/
+server/.env
+server/.env
