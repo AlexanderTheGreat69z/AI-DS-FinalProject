@@ -1,13 +1,25 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 import "./LoginPage.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { setIsLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
+
+    // TODO: replace with real authentication
     console.log("Logging in:", { username, password });
+
+    // store login state
+    setIsLoggedIn(true);
+
+    // redirect
+    navigate("/home");
   };
 
   return (
@@ -41,16 +53,6 @@ export default function LoginPage() {
             Login
           </button>
         </form>
-
-        <p className="ds-footer">
-          Don't have an account?{" "}
-          <span
-            className="ds-link"
-            onClick={() => alert("Go to create account")}
-          >
-            Create account
-          </span>
-        </p>
       </div>
     </div>
   );

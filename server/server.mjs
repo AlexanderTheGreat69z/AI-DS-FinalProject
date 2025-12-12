@@ -12,6 +12,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001; 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const { prompt, systemInstruction, guideURLs } = req.body;
+let combinedGuideText = "";
+
+if (Array.isArray(guideURLs)) {
+    for (const url of guideURLs) {
+        const text = await loadGuideFromURL(url);
+        combinedGuideText += `\n### Guide from ${url}\n${text}\n\n`;
+    }
+}
+const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+        {
+            role: "system",
+            parts: [
+                { text: systemInstruction },
+                { text: "Use the following external knowledge:\n" + combinedGuideText }
+            ]
+        },
+        { role: "user", parts: [{ text: prompt }] }
+    ]
+});
+
 
 // Check for API Key presence before starting
 if (!GEMINI_API_KEY) {
@@ -37,34 +60,41 @@ app.use(bodyParser.json());
  * and returns the generated text.
  */
 app.post('/api/generate-content', async (req, res) => {
-    // The prompt is expected from the React component
-    const { prompt } = req.body;
+    const { prompt, systemInstruction, guideURL } = req.body;
 
     if (!prompt) {
-        return res.status(400).json({ error: "A 'prompt' field is required in the request body." });
+        return res.status(400).json({ error: "Prompt is required." });
+    }
+
+    // Load guide text from the provided URL
+    let guideText = "";
+    if (guideURL) {
+        guideText = await loadGuideFromURL(guideURL);
     }
 
     try {
-        console.log(`Received prompt: "${prompt.substring(0, 50)}..."`);
-        
-        // --- SECURE CALL TO GEMINI API ---
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash", 
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            model: "gemini-2.5-flash",
+            contents: [
+                {
+                    role: "system",
+                    parts: [
+                        { text: systemInstruction },
+                        { text: "Here is authoritative external knowledge:\n" + guideText }
+                    ]
+                },
+                { role: "user", parts: [{ text: prompt }] }
+            ]
         });
 
-        const generatedText = response.text;
-        
-        res.json({ 
-            success: true,
-            text: generatedText
-        });
+        res.json({ success: true, text: response.text });
 
     } catch (error) {
-        console.error("Error calling the Gemini API:", error);
-        res.status(500).json({ error: "An internal server error occurred while processing the AI request." });
+        console.error("Gemini API error:", error);
+        res.status(500).json({ error: "AI Error" });
     }
 });
+
 
 
 // --- Server Start ---
