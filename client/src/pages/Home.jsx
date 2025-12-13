@@ -26,6 +26,21 @@ const detectValorantAgent = (text, agentList) => {
 
 // --- Game Context Definitions for Tailoring ---
 const GAME_CONTEXTS = {
+
+GENERAL: {
+  name: "GENERAL",
+  navbarTitle: "General Coach",
+  systemInstruction: "You are a high-level esports strategy coach.",
+  agents: {}
+},
+
+R6: {
+  name: "R6",
+  navbarTitle: "Rainbow Six Siege Coach",
+  systemInstruction: "You are a professional Rainbow Six Siege analyst.",
+  agents: {}
+},
+
 VALORANT: {
     name: "VALORANT",
     systemInstruction:
@@ -192,7 +207,10 @@ const ChatBubble = ({ role, content }) => {
 // 2. Game Selection Button Component
 const GameSelect = ({ gameKey, currentContext, setGameContext, setMessages }) => {
     const context = GAME_CONTEXTS[gameKey];
+    if (!context) return null; 
+
     const isSelected = currentContext.name === context.name;
+
 
     const handleSelect = () => {
         if (!isSelected) {
@@ -252,11 +270,19 @@ function Home() {
         let detectedAgent = null;
         let urls = [];
 
-        if (selectedGameContext.name === "VALORANT") {
-    detectedAgent = detectValorantAgent(trimmedInput, selectedGameContext.agents);
+    if (
+    selectedGameContext.name === "VALORANT" &&
+    selectedGameContext.agents
+    ) {
+    detectedAgent = detectValorantAgent(
+        trimmedInput,
+        selectedGameContext.agents
+    );
     if (detectedAgent) {
-        urls = selectedGameContext.agents[detectedAgent];
+        urls = selectedGameContext.agents[detectedAgent] || [];
     }
+    
+
 }
 
         // 1. Display user message immediately
