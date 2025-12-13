@@ -49,19 +49,28 @@ app.post("/api/generate-content", async (req, res) => {
 
   try {
     // --- GENERATE CONTENT WITH CAG AUGMENTATION ---
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: [
+    {
+      role: "user",
+      parts: [
         {
-          role: "system",
-          parts: [
-            { text: systemInstruction || "" },
-            { text: "Use the following external knowledge:\n" + combinedGuideText },
-          ],
+          text: `
+${systemInstruction || ""}
+
+You MUST use the following external knowledge when answering:
+${combinedGuideText}
+
+User question:
+${prompt}
+          `,
         },
-        { role: "user", parts: [{ text: prompt }] },
       ],
-    });
+    },
+  ],
+});
+
 
     res.json({ success: true, text: response.text });
   } catch (error) {
