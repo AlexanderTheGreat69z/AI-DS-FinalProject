@@ -13,32 +13,130 @@ const R6_LOGO_URL = "https://placehold.co/24x24/007bff/ffffff?text=R6";
 const CS2_LOGO_URL = "https://placehold.co/24x24/f7b32d/ffffff?text=CS2";
 const MODEL_NAME = "Gemini 2.5 Flash"; 
 
+const detectValorantAgent = (text, agentList) => {
+    const lower = text.toLowerCase();
+    for (const agent of Object.keys(agentList)) {
+        if (lower.includes(agent.toLowerCase())) {
+            return agent;
+        }
+    }
+    return null;
+};
+
+
 // --- Game Context Definitions for Tailoring ---
 const GAME_CONTEXTS = {
-    GENERAL: {
-        name: "General Gaming",
-        systemInstruction: "You are a knowledgeable and positive general gaming coach. Answer questions about gaming culture, hardware, and general competitive mechanics.",
-        navbarTitle: "General Gaming Chat",
+VALORANT: {
+    name: "VALORANT",
+    systemInstruction:
+        "You are a Radiant-level Valorant analyst. Always use official terminology and current meta.",
+
+    agents: {
+        Jett: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-jett-tips-tricks-advices/ ",
+            "https://www.proguides.com/guides/valorant/jett-quick-guide-abilities-tips-and-tricks-for-beginners",
+        ],
+        Sova: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-sova-tips-tricks-advices/",
+        ],
+        Viper: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-viper-tips-tricks-advices/ ",
+        ],
+        Astra: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-astra-abilities-tips-advices/ ",
+        ],
+        Breach: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-breach-tips-tricks-advices/",
+        ],
+        Brimstone: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-brimstone-tips-tricks-advices/",
+        ],
+
+        Chamber: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-chamber-abilities-tips-advices",
+        ],
+        Clove: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-jouer-agent-clove-competences-astuces-tuto/",
+        ],
+        Cypher: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-cypher-tips-tricks-advices",
+        ],
+        Deadlock: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-neon-abilities-tips-advices/",
+        ],
+        Fade: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-fade-abilities-tips-advices/",
+        ],
+        Gekko: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-neon-abilities-tips-advices/",
+        ],
+        Harbor: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-neon-abilities-tips-advicesr",
+        ],
+        Iso: [
+            "https://www.redbull.com/ca-en/how-to-master-iso-skills-tips-guide-valorant",
+            "https://mobalytics.gg/blog/valorant/iso-guide/",
+        ],
+        KAYO: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-kay-o-abilities-tips-advices/",
+        ],
+        Killjoy: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-killjoy-abilities-tips/",
+        ],
+        Neon: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-neon-abilities-tips-advices/",
+        ],
+        Omen: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-omen-tips-tricks-advices/  ",
+            "https://www.redbull.com/sg-en/omen-tips-guide-valorant r",
+        ],
+        Phoenix: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-phoenix-tips-tricks-advices/",
+        ],
+        Raze: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-viper-tips-tricks-advices-2/",
+        ],
+        Reyna: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-reyna-tips-tricks-advices",
+            "https://www.proguides.com/guides/valorant/reyna-quick-guide-abilities-tips-and-tricks-for-beginners/",
+        ],
+        Sage: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-master-sage-tips-tricks-advices/",
+        ],
+        Skye: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-skye-abilities-tips/  ",
+        ],
+        // Tejo: [
+        //     "https://blitz.gg/valorant/agents/viper",
+        //     "https://valorant.fandom.com/wiki/Viper",
+        // ],
+        Veto: [
+            "https://www.thegamer.com/valorant-veto-agent-abilities-tips-how-to-play-strategy/",
+            "https://overgear.com/guides/valorant/veto-guide/?srsltid=AfmBOorWf6NG1cx_cSbc5SHKAQFItbjW_QKppg2Rq_27jy3BsKce2J-",
+        ],
+        Vyse: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-jouer-agent-vyse-competences-astuces-tuto/",
+            "https://www.thegamer.com/valorant-tips-tricks-vyse",
+        ],
+        Waylay: [
+            "https://mobalytics.gg/valorant/agent/waylay/guide"
+        ],
+        Yoru: [
+            "https://www.mandatory.gg/en/valorant/guides-valorant/guides-agents/guide-how-to-play-yoru-abilities-tips"
+        ]
+
+
+        
     },
-    VALORANT: {
-        name: "VALORANT",
-        systemInstruction: "You are a world-class Radiant-level VALORANT analyst. Your responses must be concise, strategic, and focus on current agent meta, map rotations, and economic management. Use official VALORANT terminology. Always prioritize current competitive strategy.",
-        logo: VALORANT_LOGO_URL,
-        navbarTitle: "VALORANT Strategy Chat",
-    },
-    R6: {
-        name: "Rainbow Six Siege",
-        systemInstruction: "You are a competitive expert in Rainbow Six Siege. Provide detailed strategies for operators, site defense, and drone usage. Focus on current patch mechanics and competitive play.",
-        logo: R6_LOGO_URL,
-        navbarTitle: "R6 Siege Tactical Chat",
-    },
+}
+,
     CS2: {
-        name: "Counter Strike 2",
-        systemInstruction: "Act as a premier Global Elite Counter-Strike 2 coach. Provide detailed information on utility usage, timing, and recoil control patterns for current maps. Use official CS2 terminology.",
-        logo: CS2_LOGO_URL,
-        navbarTitle: "CS2 Competitive Chat",
-    },
+        name: "CS2",
+        systemInstruction: "...",
+        guideURL: "https://totalcsgo.com/grenades",
+    }
 };
+
 
 // --- Helper Components ---
 
@@ -150,7 +248,17 @@ function Home() {
         if (!trimmedInput || isLoading) return;
 
         const userMessage = { role: "user", content: trimmedInput };
-        
+        // Detect Valorant agent if in Valorant mode
+        let detectedAgent = null;
+        let urls = [];
+
+        if (selectedGameContext.name === "VALORANT") {
+    detectedAgent = detectValorantAgent(trimmedInput, selectedGameContext.agents);
+    if (detectedAgent) {
+        urls = selectedGameContext.agents[detectedAgent];
+    }
+}
+
         // 1. Display user message immediately
         const newMessages = [...messages, userMessage];
         setMessages(newMessages); 
@@ -162,10 +270,12 @@ function Home() {
         
         // Prepare the payload for the backend (including history and system context)
         const payload = {
-            prompt: trimmedInput, 
+            prompt: trimmedInput,
             chatHistory: newMessages,
             systemInstruction: selectedGameContext.systemInstruction,
+            guideURLs: urls  // NEW: send multiple URLs to backend
         };
+
         
         // --- DEBUGGING CONSOLE LOG ADDED HERE ---
         console.log("Sending Payload to Backend:", payload);
