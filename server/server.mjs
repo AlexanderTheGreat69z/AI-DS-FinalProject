@@ -16,70 +16,87 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Check for API Key presence before starting
 if (!GEMINI_API_KEY) {
-  console.error("FATAL ERROR: GEMINI_API_KEY is not set in the .env file.");
-  process.exit(1);
+    console.error("FATAL ERROR: GEMINI_API_KEY is not set in the .env file.");
+    process.exit(1);
 }
 
 // Initialize the Google Gen AI client
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 // --- Middleware ---
-app.use(cors());
+app.use(cors({
+    origin : [
+        'http://localhost:5173/',
+        'https://ai-ds-final-project-bxo7.vercel.app/',
+        'https://ai-ds-final-project-bxo7-git-*.vercel.app/',
+    ],
+    credentials: true,
+}));
+
 app.use(bodyParser.json());
 
 // --- Multiple URL CAG Route ---
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 app.post("/api/generate-content", async (req, res) => {
-  const { prompt, systemInstruction, guideURLs } = req.body;
+    const { prompt, systemInstruction, guideURLs } = req.body;
 
-  if (!prompt) {
-    return res.status(400).json({ error: "Prompt is required." });
-  }
-
-  // --- MULTIPLE URL SCRAPING (CAG) ---
-  let combinedGuideText = "";
-
-  if (Array.isArray(guideURLs)) {
-    console.log("Fetching guide URLs:", guideURLs);
-
-    for (const url of guideURLs) {
-      const text = await loadGuideFromURL(url);
-      combinedGuideText += `\n### Guide from ${url}\n${text}\n\n`;
+    if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required." });
     }
-  }
 
-  try {
-    // --- GENERATE CONTENT WITH CAG AUGMENTATION ---
-const response = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: [
-    {
-      role: "user",
-      parts: [
-        {
-          text: `
-${systemInstruction || ""}
+    // --- MULTIPLE URL SCRAPING (CAG) ---
+    let combinedGuideText = "";
 
-You MUST use the following external knowledge when answering:
-${combinedGuideText}
+    if (Array.isArray(guideURLs)) {
+        console.log("Fetching guide URLs:", guideURLs);
 
-User question:
-${prompt}
-          `,
-        },
-      ],
-    },
-  ],
+        for (const url of guideURLs) {
+        const text = await loadGuideFromURL(url);
+        combinedGuideText += `\n### Guide from ${url}\n${text}\n\n`;
+        }
+    }
+
+    try {
+        // --- GENERATE CONTENT WITH CAG AUGMENTATION ---
+        const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+            {
+                role: "user",
+                parts: [
+                    {
+                        text: `
+                        ${systemInstruction || ""}
+
+                        You MUST use the following external knowledge when answering:
+                        ${combinedGuideText}
+
+                        User question:
+                        ${prompt}
+                                `,
+                    },
+                    ],
+                },
+            ],
+        });
+        res.json({ success: true, text: response.text });
+        
+    } catch (error) {
+        console.error("Gemini API error:", error);
+        res.status(500).json({ error: "AI Error" });
+    }
 });
 
+// Export app for vercel 
+export default app;
 
-    res.json({ success: true, text: response.text });
-  } catch (error) {
-    console.error("Gemini API error:", error);
-    res.status(500).json({ error: "AI Error" });
-  }
-});
-
-// --- Server Start ---
-app.listen(PORT, () => {
-  console.log(`🚀 Gemini Proxy Server running at http://localhost:${PORT}`);
-});
+// --- Server Start (Debugging) ---
+if (process.env.DEBUG){
+    app.listen(PORT, () => {
+        console.log(`🚀 Gemini Proxy Server running at http://localhost:${PORT}`);
+    });
+}
