@@ -1,6 +1,7 @@
 
 import fetch from "node-fetch";
-const { JSDOM } = await import("jsdom")
+import { convert } from "html-to-text";
+// const { JSDOM } = await import("jsdom")
 // import { JSDOM } from "jsdom";
 
 export async function loadGuideFromURL(url) {
@@ -17,25 +18,26 @@ export async function loadGuideFromURL(url) {
     }
 
     const html = await res.text();
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
+    
+    // Convert HTML to clean text
+    const text = convert(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: 'script', format: 'skip' },
+        { selector: 'style', format: 'skip' },
+        { selector: 'nav', format: 'skip' },
+        { selector: 'footer', format: 'skip' },
+        { selector: 'header', format: 'skip' },
+        { selector: 'iframe', format: 'skip' },
+      ]
+    });
 
-    // Remove noisy elements
-    document
-      .querySelectorAll("script, style, nav, footer, header, iframe")
-      .forEach(el => el.remove());
-
-    const article =
-      document.querySelector("article") || document.body;
-
-    let text = article.textContent || "";
-
-    text = text
+    return text
       .replace(/\s+/g, " ")
       .replace(/\n{2,}/g, "\n")
-      .trim();
+      .trim()
+      .slice(0, 12000); // safety limit
 
-    return text.slice(0, 12000); // safety limit
   } catch (err) {
     console.error("Guide fetch error:", err.message);
     return "Guide content could not be loaded.";
