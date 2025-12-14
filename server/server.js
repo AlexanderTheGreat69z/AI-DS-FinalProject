@@ -38,8 +38,8 @@ app.use(bodyParser.json());
 
 // --- Multiple URL CAG Route ---
 
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
+app.get('/', (req, res) => {
+    res.send("Server is running!")
 });
 
 app.post("/api/generate-content", async (req, res) => {
