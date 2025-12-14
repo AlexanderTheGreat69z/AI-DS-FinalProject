@@ -1,10 +1,11 @@
 // --- Dependencies (using ES Module import syntax) ---
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
-import { loadGuideFromURL } from "./data/fetchGuide.js";
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const dotenv = require("dotenv");
+
+const { GoogleGenAI } = require("@google/genai");
+const { loadGuideFromURL } = require("./data/fetchGuide.js");
 
 // Load environment variables from .env
 dotenv.config();

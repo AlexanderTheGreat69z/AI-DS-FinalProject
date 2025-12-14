@@ -1,5 +1,10 @@
-import fetch from "node-fetch";
-import { JSDOM } from "jsdom";
+
+// Use require() for CommonJS
+const fetch = require("node-fetch")
+const { JSDOM } = require("jsdom")
+
+// import fetch from "node-fetch";
+// import { JSDOM } from "jsdom";
 
 export async function loadGuideFromURL(url) {
   try {

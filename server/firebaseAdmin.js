@@ -1,5 +1,10 @@
-import admin from "firebase-admin";
-import dotenv from "dotenv";
+
+// Use require() for CommonJS
+const admin = require("firebas-admin")
+const dotenv = require("dotenv")
+
+// import admin from "firebase-admin";
+// import dotenv from "dotenv";
 
 dotenv.config();
 
