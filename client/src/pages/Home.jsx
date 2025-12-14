@@ -1,17 +1,26 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 
+import TEXT_LOGO from '../assets/gamesense-logo-text.png'
+
+import VALORANT_LOGO from '../assets/valorant-logo.jpeg'
+import R6_LOGO from '../assets/rainbow6-logo.jpg'
+import CS2_LOGO from '../assets/cs2-logo.png'
+
+import DEFAULT_PFP from '../assets/default-user-pfp.png'
+import AI_PFP from '../../public/gamesense-logo.png'
+
 // --- Configuration and Placeholders ---
-const API_ENDPOINT = 'http://localhost:3001/api/generate-content';
+const API_ENDPOINT      = 'http://localhost:3001/api/generate-content';
+const MODEL_NAME        = "Gemini 2.5 Flash";
 
 // Placeholder URLs for images (as external imports are not allowed in a single file)
-const LOGO_TEXT_URL = "https://placehold.co/200x50/17141f/e0e0e0?text=GameSense+AI";
-const DEFAULT_PFP_URL = "https://placehold.co/40x40/553c9a/ffffff?text=U";
-const AI_PFP_URL = "https://placehold.co/40x40/00FF00/17141f?text=AI"; // New AI PFP placeholder
-const VALORANT_LOGO_URL = "https://placehold.co/24x24/FF4655/ffffff?text=V";
-const R6_LOGO_URL = "https://placehold.co/24x24/007bff/ffffff?text=R6";
-const CS2_LOGO_URL = "https://placehold.co/24x24/f7b32d/ffffff?text=CS2";
-const MODEL_NAME = "Gemini 2.5 Flash"; 
+// const TEXT_LOGO      = "https://placehold.co/200x50/17141f/e0e0e0?text=GameSense+AI";
+// const DEFAULT_PFP    = "https://placehold.co/40x40/553c9a/ffffff?text=U";
+// const AI_PFP         = "https://placehold.co/40x40/00FF00/17141f?text=AI"; // New AI PFP placeholder
+// const VALORANT_LOGO  = "https://placehold.co/24x24/FF4655/ffffff?text=V";
+// const R6_LOGO        = "https://placehold.co/24x24/007bff/ffffff?text=R6";
+// const CS2_LOGO       = "https://placehold.co/24x24/f7b32d/ffffff?text=CS2"; 
 
 const detectValorantAgent = (text, agentList) => {
     const lower = text.toLowerCase();
@@ -28,21 +37,24 @@ const detectValorantAgent = (text, agentList) => {
 const GAME_CONTEXTS = {
 
 GENERAL: {
-  name: "GENERAL",
-  navbarTitle: "General Coach",
-  systemInstruction: "You are a high-level esports strategy coach.",
-  agents: {}
+    name: "GENERAL",
+    navbarTitle: "General Coach",
+    systemInstruction: "You are a high-level esports strategy coach.",
+    agents: {}
 },
 
 R6: {
-  name: "R6",
-  navbarTitle: "Rainbow Six Siege Coach",
-  systemInstruction: "You are a professional Rainbow Six Siege analyst.",
-  agents: {}
+    name: "R6",
+    navbarTitle: "Rainbow Six Siege Coach",
+    logo: R6_LOGO,
+    systemInstruction: "You are a professional Rainbow Six Siege analyst.",
+    agents: {}
 },
 
 VALORANT: {
     name: "VALORANT",
+    navbarTitle: "VALORANT Coach",
+    logo: VALORANT_LOGO,
     systemInstruction:
         "You are a Radiant-level Valorant analyst. Always use official terminology and current meta.",
 
@@ -147,6 +159,8 @@ VALORANT: {
 ,
     CS2: {
         name: "CS2",
+        navbarTitle: "Counter Strike 2 Coach",
+        logo: CS2_LOGO,
         systemInstruction: "...",
         guideURL: "https://totalcsgo.com/grenades",
     }
@@ -178,7 +192,7 @@ const ChatBubble = ({ role, content }) => {
         <div className={styles.wrapper}>
             {/* User PFP (Left) goes first */}
             {!isAssistant && (
-                <img src={DEFAULT_PFP_URL} alt="User PFP" className={styles.pfp} />
+                <img src={DEFAULT_PFP} alt="User PFP" className={styles.pfp} />
             )}
             
             <div className={styles.bubble}>
@@ -197,7 +211,7 @@ const ChatBubble = ({ role, content }) => {
             
             {/* AI PFP (Right) goes last */}
             {isAssistant && (
-                <img src={AI_PFP_URL} alt="AI PFP" className={styles.pfp} />
+                <img src={AI_PFP} alt="AI PFP" className={styles.pfp} />
             )}
         </div>
     );
@@ -234,7 +248,7 @@ const GameSelect = ({ gameKey, currentContext, setGameContext, setMessages }) =>
             {context.logo ? (
                 <img src={context.logo} alt={`${context.name} Logo`} className={styles.logo} />
             ) : (
-                <div className="w-6 h-6 mx-2 text-2xl text-center">🎮</div>
+                <h1 className="w-6 h-6 mx-2 text-2xl text-center">🎮</h1>
             )}
             <h1 className={styles.name}>{context.name}</h1>
         </button>
@@ -379,7 +393,7 @@ function Home() {
 
             {/* SIDEBAR */}
             <div className={styles.sidebar}>
-                <img src={LOGO_TEXT_URL} alt="GameSense Logo" className="px-7 py-5 opacity-80"/>
+                <img src={TEXT_LOGO} alt="GameSense Logo" className="px-7 py-5 opacity-80"/>
                 <div className={styles.game_chats}>
                     <h1 className="text-[#00FF00] text-center pb-3 mb-2 border-b border-[#00FF00]/30 font-semibold opacity-80">Game Chats</h1>
                     
@@ -410,7 +424,7 @@ function Home() {
 
                 </div>
                 <button className={styles.user_acc_btn}>
-                    <img className={styles.acc_pfp} src={DEFAULT_PFP_URL} alt="User Profile" />
+                    <img className={styles.acc_pfp} src={DEFAULT_PFP} alt="User Profile" />
                     <h1 className={styles.acc_name}>PlayerOne</h1>
                 </button>
             </div>
