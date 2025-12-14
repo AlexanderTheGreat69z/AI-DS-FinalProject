@@ -28,8 +28,8 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 app.use(cors({
     origin : [
         'http://localhost:5173',
-        'https://ai-ds-final-project-bxo7.vercel.app',
-        'https://ai-ds-final-project-bxo7-git-*.vercel.app',
+        'https://gamesense-ai.vercel.app',
+        'https://gamesense-client-git-*.vercel.app',
     ],
     credentials: true,
 }));
