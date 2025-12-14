@@ -8,10 +8,10 @@ import R6_LOGO from '../assets/rainbow6-logo.jpg'
 import CS2_LOGO from '../assets/cs2-logo.png'
 
 import DEFAULT_PFP from '../assets/default-user-pfp.png'
-import AI_PFP from '../../public/gamesense-logo.png'
+import AI_PFP from '../assets/gamesense-logo.png'
 
 // --- Configuration and Placeholders ---
-const API_ENDPOINT      = 'http://localhost:3001/api/generate-content';
+const API_ENDPOINT      = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:3001/api/generate-content';
 const MODEL_NAME        = "Gemini 2.5 Flash";
 
 // Placeholder URLs for images (as external imports are not allowed in a single file)
@@ -258,6 +258,7 @@ const GameSelect = ({ gameKey, currentContext, setGameContext, setMessages }) =>
 
 // --- Main Home Component ---
 function Home() {
+    console.log(API_ENDPOINT)
     const [selectedGameContext, setSelectedGameContext] = useState(GAME_CONTEXTS.VALORANT);
     const [messages, setMessages] = useState([
         { role: "assistant", content: `Welcome to **GameSense!** Select a game chat on the left to get started, or ask a general question about gaming strategy. Currently selected: **${GAME_CONTEXTS.VALORANT.name}**.` }
